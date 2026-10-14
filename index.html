@@ -1177,7 +1177,7 @@
 
   /* ---- Bottom tab bar ---- */
   .body{
-    padding-bottom:90px;
+    padding-bottom:110px;
   }
   .tabbar{
     position:fixed;
@@ -1188,10 +1188,10 @@
     max-width:480px;
     display:grid;
     grid-template-columns:repeat(4, 1fr);
-    background:var(--cream);
-    border-top:2px solid #ecd9b8;
-    box-shadow:0 -4px 14px rgba(0,0,0,0.12);
-    padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+    background:#D7A666;
+    border-radius:34px 34px 0 0;
+    box-shadow:0 -6px 18px rgba(0,0,0,0.14);
+    padding:14px 8px calc(12px + env(safe-area-inset-bottom));
     z-index:50;
   }
   .tab-btn{
@@ -1199,18 +1199,22 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:3px;
+    gap:6px;
     background:none;
     border:none;
-    padding:6px 2px;
+    padding:4px 2px;
     cursor:pointer;
-    color:var(--ink-soft);
+    color:#fff;
     font-family:'Noto Sans TC', sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    transition:color .2s ease, transform .2s ease;
   }
-  .tab-btn .tab-icon{ font-size:21px; line-height:1; }
-  .tab-btn .tab-label{ font-size:11px; font-weight:700; }
+  .tab-btn .tab-icon{ width:32px; height:32px; display:block; }
+  .tab-btn .tab-icon svg{ width:100%; height:100%; display:block; fill:currentColor; }
+  .tab-btn .tab-label{ font-size:15px; font-weight:700; letter-spacing:.04em; line-height:1.2; white-space:nowrap; }
   .tab-btn.active{ color:var(--temple-red); }
-  .tab-btn.active .tab-icon{ transform:scale(1.08); }
+  .tab-btn.active .tab-icon{ transform:scale(1.06); }
+  .tab-btn:focus-visible{ outline:2px solid #fff; outline-offset:2px; border-radius:12px; }
 
   /* ---- Profile screen ---- */
   .profile-card{
@@ -1303,15 +1307,63 @@
     border:none;
     cursor:pointer;
     padding:6px;
-  }</style>
+  }
+  /* ---- 無 emoji 介面調整 ---- */
+  body{ width:100%; min-width:0; }
+  .app{ min-width:0; }
+  .body > *, .map-photo-scroll{ min-width:0; max-width:100%; }
+  .ico{ width:1em; height:1em; display:block; fill:currentColor; }
+  .header{ padding:30px 20px 28px; overflow:hidden; }
+  .header::after{
+    content:""; position:absolute; right:-10px; bottom:0; width:190px; height:110px; pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 190 110'%3E%3Cpath d='M0 110 L70 38 L98 62 L132 20 L190 78 L190 110Z' fill='%23ffffff' fill-opacity='.10'/%3E%3C/svg%3E") no-repeat bottom right;
+  }
+  .header h1, .header p{ position:relative; z-index:1; }
+  .header h1{ font-size:24px; margin-bottom:8px; }
+  .feedback .emoji:empty, .end-emoji:empty, .blessing-emoji:empty{ display:none; }
+
+  .goal-card{
+    background:linear-gradient(180deg, #fffdf6 0%, #fff4dc 100%);
+    border:1.5px solid #f0c64a;
+    box-shadow:0 4px 12px rgba(160,110,30,0.12);
+  }
+  .goal-pray-btn{ border:2px solid var(--temple-red); background:#fff; color:var(--temple-red); opacity:.55; }
+  .goal-pray-btn.enabled{ opacity:1; }
+
+  .route-card{
+    background:#fff;
+    border:1px solid #ecdcc4;
+    box-shadow:0 4px 10px rgba(120,80,30,0.10);
+    padding:16px 6px 18px;
+  }
+  .route-distance{ margin-bottom:10px; font-size:11.5px; padding:3px 12px; }
+  .route-card[data-km="1"] .route-distance{ background:#F2B27C; }
+  .route-card[data-km="2"] .route-distance{ background:#4FB3B5; }
+  .route-name{ font-size:15px; margin-bottom:0; }
+
+  .timer-card{
+    border:1px solid #e4d2b6;
+    box-shadow:0 4px 12px rgba(120,80,30,0.10);
+  }
+
+  .prayer-mic-btn, #chat-send-btn, .modal-close{ font-size:20px; display:inline-flex; align-items:center; justify-content:center; }
+  .box-video-placeholder .play-icon{ font-size:24px; }
+  .box-video-placeholder .play-icon .ico{ margin-left:3px; }
+  .profile-avatar{ font-size:28px; color:#fff8ea; }
+  .chat-avatar, .chat-hero-badge{ font-family:'Noto Serif TC', serif; font-weight:900; color:var(--temple-red); }
+  .chat-hero-badge{
+    width:52px; height:52px; margin:0 auto; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff2cf, var(--gold) 70%);
+    border:2px solid #fff8ea; display:flex; align-items:center; justify-content:center; font-size:24px;
+  }
+  .loc-img-icon{ font-size:14px; font-weight:800; color:var(--ink-soft); letter-spacing:.1em; }
+</style>
 </head>
 <body>
 
 <div class="app">
 
   <div class="header">
-    <div class="divider">✦✦✦</div>
-    <div class="avatar">🙏</div>
     <h1>福安宮土地公問事站</h1>
     <p>暖碇吊橋 · 散步問事 · 健康滿分</p>
   </div>
@@ -1321,20 +1373,20 @@
     <!-- ---- Map home screen (問答遊戲分頁首頁) ---- -->
     <div id="screen-map-home" style="display:flex; flex-direction:column; gap:14px;">
       <div class="goal-card" id="goal-card">
-        <div class="goal-title">🙏 本日祈福</div>
+        <div class="goal-title">本日祈福</div>
         <div class="goal-progress-text" id="goal-progress-text">走 1000 步，可以向土地公爺爺加碼祈福！</div>
         <div class="goal-progress-bar"><div class="goal-progress-fill" id="goal-progress-fill" style="width:0%;"></div></div>
         <div class="goal-progress-num" id="goal-progress-num">0 / 1000 步</div>
         <div class="goal-btn-row">
-          <button class="goal-ask-btn" id="goal-ask-btn">💬 我想留言</button>
-          <button class="goal-pray-btn" id="goal-pray-btn" disabled>🙏 加碼祈福</button>
+          <button class="goal-ask-btn" id="goal-ask-btn">我想留言</button>
+          <button class="goal-pray-btn" id="goal-pray-btn" disabled>加碼祈福</button>
         </div>
 
         <div class="prayer-box hidden" id="prayer-box">
-          <textarea class="prayer-input" id="prayer-input" placeholder="打字，或按🎤說出您想對土地公說的話…"></textarea>
+          <textarea class="prayer-input" id="prayer-input" placeholder="打字，或按麥克風說出您想對土地公說的話…"></textarea>
           <div class="prayer-input-row">
-            <button class="prayer-mic-btn" id="prayer-mic-btn" aria-label="語音輸入">🎤</button>
-            <button class="prayer-submit-btn" id="prayer-submit-btn">🙏 獻上祈福</button>
+            <button class="prayer-mic-btn" id="prayer-mic-btn" aria-label="語音輸入"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M18.5 11a.9.9 0 0 0-1.8 0 4.7 4.7 0 0 1-9.4 0 .9.9 0 0 0-1.8 0 6.5 6.5 0 0 0 5.6 6.4V20H8.6a.9.9 0 0 0 0 1.8h6.8a.9.9 0 0 0 0-1.8h-2.5v-2.6a6.5 6.5 0 0 0 5.6-6.4z"/></svg></button>
+            <button class="prayer-submit-btn" id="prayer-submit-btn">獻上祈福</button>
           </div>
           <div class="prayer-saved-note" id="prayer-saved-note"></div>
         </div>
@@ -1342,33 +1394,30 @@
 
       <div class="route-row" id="route-row">
         <div class="route-card" data-route="grandkid" data-km="1">
-          <div class="route-icon">👶</div>
-          <div class="route-name">追孫路線</div>
           <div class="route-distance">1K</div>
+          <div class="route-name">追孫路線</div>
         </div>
         <div class="route-card" data-route="worship" data-km="2">
-          <div class="route-icon">🙏</div>
-          <div class="route-name">參拜路線</div>
           <div class="route-distance">2K</div>
+          <div class="route-name">參拜路線</div>
         </div>
         <div class="route-card" data-route="sixpack" data-km="3">
-          <div class="route-icon">💪</div>
-          <div class="route-name">六塊肌路線</div>
           <div class="route-distance">3K</div>
+          <div class="route-name">六塊肌路線</div>
         </div>
       </div>
 
       <div class="timer-card">
-        <div class="steps-today-label">👣 今日步數</div>
+        <div class="steps-today-label">今日步數</div>
         <div class="steps-today-display" id="steps-today-display">0</div>
         <div class="steps-today-goal">目標 1000 步，達成即可向土地公祈福</div>
 
         <div class="timer-display" id="timer-display">00:00</div>
         <div class="timer-btns">
-          <button class="timer-btn primary" id="timer-start-btn">▶️ 開始</button>
-          <button class="timer-btn" id="timer-reset-btn">🔄 重設時間</button>
+          <button class="timer-btn primary" id="timer-start-btn">開始計時</button>
+          <button class="timer-btn" id="timer-reset-btn">重設時間</button>
         </div>
-        <div class="timer-status" id="timer-status">按下開始，手機會自動幫您計步</div>
+        <div class="timer-status" id="timer-status">按下「開始計時」，手機會自動幫您計步</div>
 
         <div class="step-counter-row hidden" id="manual-step-row">
           <button class="step-btn" id="step-minus-btn">－</button>
@@ -1376,11 +1425,11 @@
           <button class="step-btn" id="step-plus-btn">＋</button>
         </div>
 
-        <button class="btn-secondary timer-save-btn" id="timer-save-btn">📍 記錄本次步道時間</button>
+        <button class="btn-secondary timer-save-btn" id="timer-save-btn">記錄本次步道時間</button>
         <div class="timer-saved-note" id="timer-saved-note"></div>
       </div>
 
-      <div class="loc-section-title" style="margin-top:2px;">⚠️ 各入口注意點（可以點擊）</div>
+      <div class="loc-section-title" style="margin-top:2px;">各入口注意點（可以點擊）</div>
 
       <div class="map-photo-scroll">
         <div class="map-photo-inner" id="map-hero">
@@ -1389,12 +1438,12 @@
       </div>
 
       <div class="loc-section">
-        <div class="loc-section-title">🚪 出入口（點選可放大）</div>
+        <div class="loc-section-title">出入口（點選可放大）</div>
         <div class="loc-row" id="loc-row-exit"></div>
       </div>
 
       <div class="loc-section">
-        <div class="loc-section-title">🪜 樓梯（點選可放大）</div>
+        <div class="loc-section-title">樓梯（點選可放大）</div>
         <div class="loc-row" id="loc-row-stair"></div>
       </div>
     </div>
@@ -1402,17 +1451,17 @@
     <!-- ---- Intro screen ---- -->
     <div id="screen-quiz-start" class="hidden" style="display:flex; flex-direction:column; gap:14px;">
       <div class="card">
-        <p class="intro-text">老鄰居您好！🙏<br>
+        <p class="intro-text">老鄰居您好！<br>
         土地公準備了 <b>10 題</b> 生活健康小問答，陪您輕鬆動動腦，順便複習平常要注意的健康小知識。</p>
         <p class="intro-text">每題都有 4 個選項，選錯了土地公也會溫柔告訴您正確答案，不用緊張，慢慢來就好。</p>
-        <div class="intro-note">⚠️ 遊戲內容僅供健康知識參考，實際身體狀況仍請以醫師診斷為準。</div>
+        <div class="intro-note">遊戲內容僅供健康知識參考，實際身體狀況仍請以醫師診斷為準。</div>
         <div class="name-field" id="name-field">
-          <label for="player-name">👤 請輸入您的稱呼</label>
+          <label for="player-name">請輸入您的稱呼</label>
           <input type="text" id="player-name" placeholder="例如：陳阿姨、王大哥" maxlength="20">
           <div class="err">請先輸入您的稱呼，土地公才知道是哪位老鄰居來作答喔～</div>
         </div>
       </div>
-      <button class="btn-primary" id="btn-start">🏮 開始問答</button>
+      <button class="btn-primary" id="btn-start">開始問答</button>
       <div class="submit-note">填寫完成後，答題結果會回傳給廟方後台紀錄</div>
       <div class="back-link-row"><button class="back-link" data-nav="blessing">← 返回每日祈福</button></div>
     </div>
@@ -1438,7 +1487,7 @@
       </div>
 
       <div class="feedback" id="feedback">
-        <div class="emoji" id="feedback-emoji">🙏</div>
+        <div class="emoji" id="feedback-emoji"></div>
         <div class="msg" id="feedback-msg"></div>
       </div>
 
@@ -1448,20 +1497,19 @@
     <!-- ---- End screen ---- -->
     <div id="screen-end" class="hidden" style="display:flex; flex-direction:column; gap:16px;">
       <div class="card">
-        <div class="end-emoji" id="end-emoji">🏮</div>
+        <div class="end-emoji" id="end-emoji"></div>
         <p class="end-score"><span id="end-score-num">0</span> <span>/ 10 題答對</span></p>
         <p class="end-msg" id="end-msg"></p>
         <p class="submit-note" id="end-submit-note"></p>
       </div>
 
-      <button class="btn-primary" id="btn-restart">🔁 再玩一次</button>
+      <button class="btn-primary" id="btn-restart">再玩一次</button>
       <div class="back-link-row"><button class="back-link" data-nav="blessing">← 返回每日祈福</button></div>
     </div>
 
     <!-- ---- Consultation (Chat) screen ---- -->
     <div id="screen-consultation" class="hidden" style="display:flex; flex-direction:column; gap:14px;">
       <div class="card" style="text-align:center;">
-        <div style="font-size:34px;">🙏</div>
         <p class="screen-title">線上問事</p>
         <p class="screen-sub">直接打字問土地公，或點選下方常見問題</p>
       </div>
@@ -1471,41 +1519,43 @@
         <div class="chat-suggestions" id="chat-suggestions"></div>
         <div class="chat-inputbar">
           <input type="text" id="chat-input" placeholder="請輸入您的問題…" maxlength="100">
-          <button id="chat-send-btn" aria-label="送出">➤</button>
+          <button id="chat-send-btn" aria-label="送出"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M3.4 20.4 21 12 3.4 3.6l-.01 6.53L15 12 3.39 13.87z"/></svg></button>
         </div>
       </div>
 
-      <div class="intro-note">⚠️ 以上為一般衛教參考，若有明顯不適或緊急狀況，請直接就醫或撥打 119</div>
+      <div class="intro-note">以上為一般衛教參考，若有明顯不適或緊急狀況，請直接就醫或撥打 119</div>
     </div>
 
     <!-- ---- Blessing screen ---- -->
     <div id="screen-blessing" class="hidden" style="display:flex; flex-direction:column; gap:16px;">
       <div class="blessing-card">
         <div class="blessing-date" id="blessing-date">今日祈福</div>
-        <div class="blessing-emoji" id="blessing-emoji">🍀</div>
+        <div class="blessing-emoji" id="blessing-emoji"></div>
         <p class="blessing-text" id="blessing-text">祈福小語載入中…</p>
       </div>
-      <button class="btn-secondary" id="btn-blessing-again">🔄 再求一句祈福小語</button>
+      <button class="btn-secondary" id="btn-blessing-again">再求一句祈福小語</button>
 
       <div class="blessing-boxes">
         <div class="blessing-box">
           <div class="box-video" id="blessing-video-box">
-            <div class="box-video-placeholder">
-              <div class="play-icon">▶️</div>
-              <div class="ph-text">影片準備中</div>
-            </div>
+            <iframe src="https://www.youtube-nocookie.com/embed/fgi_MNiqPKY?rel=0&playsinline=1"
+              title="暖行者的回春之旅｜基隆暖暖｜河堤散步"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen></iframe>
           </div>
           <div class="box-body">
-            <div class="box-title-row"><span class="box-icon">💃</span><span class="box-title">參拜舞教學</span></div>
+            <div class="box-title-row"><span class="box-title">參拜舞教學</span></div>
             <p class="box-desc">跟著影片動一動，活絡筋骨也是一種祈福的方式，適合在廟埕或家中空地跟著練習。</p>
           </div>
         </div>
 
         <div class="blessing-box">
           <div class="box-body">
-            <div class="box-title-row"><span class="box-icon">🏮</span><span class="box-title">健康問答遊戲</span></div>
+            <div class="box-title-row"><span class="box-title">健康問答遊戲</span></div>
             <p class="box-desc">土地公準備了 10 題生活健康小問答，玩遊戲順便複習平常要注意的健康小知識。</p>
-            <button class="box-cta" data-nav="quiz-start">🏮 開始問答</button>
+            <button class="box-cta" data-nav="quiz-start">開始問答</button>
           </div>
         </div>
       </div>
@@ -1515,12 +1565,12 @@
     <div id="screen-profile" class="hidden" style="display:flex; flex-direction:column; gap:16px;">
       <div class="card">
         <div class="profile-card">
-          <div class="profile-avatar">👤</div>
+          <div class="profile-avatar"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><circle cx="12" cy="8" r="4.2"/><path d="M3.8 20.2c.6-4 4-6.4 8.2-6.4s7.6 2.4 8.2 6.4c.1.5-.3.8-.8.8H4.6c-.5 0-.9-.3-.8-.8z"/></svg></div>
           <div class="profile-name-row">
             <div class="p-label">目前稱呼</div>
             <div class="p-name" id="profile-name-display">尚未設定</div>
           </div>
-          <button class="profile-edit-btn" id="profile-edit-btn">✏️ 修改</button>
+          <button class="profile-edit-btn" id="profile-edit-btn">修改</button>
         </div>
         <div class="profile-name-edit" id="profile-name-edit">
           <input type="text" id="profile-name-input" placeholder="請輸入您的稱呼" maxlength="20">
@@ -1529,47 +1579,47 @@
       </div>
 
       <div class="card">
-        <p class="profile-section-title">🙏 祈福留言足跡</p>
+        <p class="profile-section-title">祈福留言足跡</p>
         <div class="history-list" id="prayer-history-list"></div>
         <button class="history-clear" id="prayer-history-clear-btn">清除祈福留言紀錄</button>
       </div>
 
       <div class="card">
-        <p class="profile-section-title">🚶 步道計時足跡</p>
+        <p class="profile-section-title">步道計時足跡</p>
         <div class="history-list" id="walk-history-list"></div>
         <button class="history-clear" id="walk-history-clear-btn">清除步道計時紀錄</button>
       </div>
 
       <div class="card">
-        <p class="profile-section-title">🏮 問答遊戲成績</p>
+        <p class="profile-section-title">問答遊戲成績</p>
         <div class="history-list" id="history-list"></div>
         <button class="history-clear" id="history-clear-btn">清除本機作答紀錄</button>
       </div>
 
-      <div class="intro-note">📱 以上足跡僅保存在您目前使用的這台手機／裝置上，換裝置或清除瀏覽器資料後將會消失。正式問答成績仍以廟方後台資料為準。</div>
+      <div class="intro-note">以上足跡僅保存在您目前使用的這台手機／裝置上，換裝置或清除瀏覽器資料後將會消失。正式問答成績仍以廟方後台資料為準。</div>
     </div>
 
     <div class="footer-note">我們是暖行者，一群基隆在地的醫療團隊<br>聯絡我們：warmvoyagers25@gmail.com</div>
   </div>
 
-  <div class="tabbar">
+  <nav class="tabbar" aria-label="主要導覽">
     <button class="tab-btn" data-tab="quiz">
-      <span class="tab-icon">👣</span>
+      <span class="tab-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="21.5" cy="4.2" r="2.6"/><circle cx="16.4" cy="5.6" r="1.9"/><circle cx="12.6" cy="8.3" r="1.5"/><circle cx="10.2" cy="11.6" r="1.2"/><path d="M14.5 11.2c3.6-1.1 6.6 1.1 7 4.9.3 2.6-.5 4.6.6 7.4.9 2.4.9 4.6-.6 5.7-1.8 1.3-4 .3-5-1.9l-3.8-8c-1.5-3.3-.7-7.2 1.8-8.1z"/></svg></span>
       <span class="tab-label">今日步數</span>
     </button>
     <button class="tab-btn" data-tab="consultation">
-      <span class="tab-icon">🙏</span>
+      <span class="tab-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 6.5C10 5.1 11.1 4 12.5 4h14C27.9 4 29 5.1 29 6.5v10c0 1.4-1.1 2.5-2.5 2.5H26v3.6l-4.2-3.6H12.5C11.1 19 10 17.9 10 16.5z"/><path d="M8 10.5v7.2c0 2.6 2.1 4.6 4.6 4.6h7.7c-.4.9-1.3 1.7-2.4 1.7H9.3L5.4 27.4V24h-.9C3.1 24 2 22.9 2 21.5v-8.5C2 11.6 3.1 10.5 4.5 10.5z"/></svg></span>
       <span class="tab-label">線上問事</span>
     </button>
     <button class="tab-btn" data-tab="blessing">
-      <span class="tab-icon">☀️</span>
+      <span class="tab-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8.5 3h15C24.9 3 26 4.1 26 5.5V29l-10-4.6L6 29V5.5C6 4.1 7.1 3 8.5 3z"/><path fill="#D7A666" d="M16 18.8l-.9-.8c-3-2.7-4.9-4.3-4.9-6.4 0-1.6 1.3-2.9 2.9-2.9.9 0 1.8.4 2.9 1.5 1.1-1.1 2-1.5 2.9-1.5 1.6 0 2.9 1.3 2.9 2.9 0 2.1-1.9 3.7-4.9 6.4z"/></svg></span>
       <span class="tab-label">每日祈福</span>
     </button>
     <button class="tab-btn" data-tab="profile">
-      <span class="tab-icon">📜</span>
+      <span class="tab-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill-rule="evenodd" d="M7.5 3h17C26 3 27 4 27 5.5v21c0 1.5-1 2.5-2.5 2.5h-17C6 29 5 28 5 26.5v-21C5 4 6 3 7.5 3zM8 6v20h16V6zM10.5 9h11v3h-11zm0 5.5h11v3h-11zm0 5.5h11v3h-11z"/></svg></span>
       <span class="tab-label">祈福足跡</span>
     </button>
-  </div>
+  </nav>
 
   <!-- ---- 放大彈窗（半透明黑底、滿版） ---- -->
   <div class="loc-modal-overlay hidden" id="loc-modal-overlay">
@@ -1917,7 +1967,7 @@
         if(i === idx) b.classList.add('selected');
       });
       feedbackEl.classList.add('show', 'is-good');
-      feedbackEmoji.textContent = '🙏';
+      feedbackEmoji.textContent = '';
       feedbackMsg.innerHTML = `<b>謝謝您的回饋！</b>感謝您參加回暖之旅，您的想法我們會好好記錄下來。`;
       btnNext.classList.remove('hidden');
       btnNext.textContent = '繼續下一題 →';
@@ -1935,7 +1985,7 @@
     });
 
     feedbackEl.classList.add('show', isCorrect ? 'is-good' : 'is-bad');
-    feedbackEmoji.textContent = isCorrect ? '🙏' : '🏮';
+    feedbackEmoji.textContent = '';
     feedbackMsg.innerHTML = `<b>${isCorrect ? '答對了，土地公說讚！' : '土地公溫馨提醒您～'}</b>${isCorrect ? item.good : item.bad}`;
 
     btnNext.classList.remove('hidden');
@@ -1971,16 +2021,16 @@
 
     let emoji, msg;
     if(correctCount >= 9){
-      emoji = '🏆';
+      emoji = '';
       msg = '健康小達人！土地公都佩服您平常這麼用心照顧自己，繼續保持喔！';
     } else if(correctCount >= 6){
-      emoji = '🌟';
+      emoji = '';
       msg = '很不錯喔！大部分的健康知識您都掌握得很好，繼續保持這份用心。';
     } else if(correctCount >= 3){
-      emoji = '🙏';
+      emoji = '';
       msg = '這些健康小知識平常可以多留意，日常生活多注意身體變化，有不舒服還是要盡快就醫喔。';
     } else {
-      emoji = '💛';
+      emoji = '';
       msg = '沒關係，健康知識慢慢認識就好，土地公和志工都在這裡陪您一起學習。';
     }
     document.getElementById('end-emoji').textContent = emoji;
@@ -1991,8 +2041,8 @@
       noteEl.textContent = '正在回傳成績給廟方後台…';
       submitScore(playerName, correctCount, SCORABLE_COUNT).then((ok)=>{
         noteEl.textContent = ok
-          ? `✅ 已將 ${playerName} 老鄰居的成績回傳給廟方後台`
-          : '⚠️ 成績回傳失敗，請確認網路連線';
+          ? `已將 ${playerName} 老鄰居的成績回傳給廟方後台`
+          : '成績回傳失敗，請確認網路連線';
       });
     } else {
       noteEl.textContent = '';
@@ -2087,7 +2137,7 @@
   ];
 
   const FAQ_FALLBACKS = [
-    "這個問題土地公還在學習中，比較放心的做法是直接請教您的醫師或藥師喔🙏 您也可以點下面的常見主題問問看。",
+    "這個問題土地公還在學習中，比較放心的做法是直接請教您的醫師或藥師喔！您也可以點下面的常見主題問問看。",
     "土地公目前對這個問題還沒有把握，建議您可以就近詢問診所或藥局，會比較準確唷。也歡迎問問下面列出的健康主題～",
     "嗯…這個土地公暫時答不上來，怕誤導您反而不好。如果身體真的不舒服，還是建議直接就醫詢問專業的醫師比較安心。"
   ];
@@ -2114,7 +2164,7 @@
     const row = document.createElement('div');
     row.className = 'chat-msg ' + role;
     if(role === 'bot'){
-      row.innerHTML = `<span class="chat-avatar">🙏</span><span class="chat-bubble"></span>`;
+      row.innerHTML = `<span class="chat-avatar">土</span><span class="chat-bubble"></span>`;
       row.querySelector('.chat-bubble').textContent = text;
     } else {
       row.innerHTML = `<span class="chat-bubble"></span>`;
@@ -2144,7 +2194,7 @@
 
     const typingRow = document.createElement('div');
     typingRow.className = 'chat-msg bot typing';
-    typingRow.innerHTML = `<span class="chat-avatar">🙏</span><span class="chat-bubble">土地公思考中…</span>`;
+    typingRow.innerHTML = `<span class="chat-avatar">土</span><span class="chat-bubble">土地公思考中…</span>`;
     chatMessagesEl.appendChild(typingRow);
     chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 
@@ -2167,23 +2217,23 @@
   function initChatIfNeeded(){
     if(chatInitialized || !chatMessagesEl) return;
     chatInitialized = true;
-    appendChatMessage('bot', '老鄰居您好！🙏 我是土地公，有健康上的小疑問都可以直接打字問我，或點下面的常見主題也可以喔～');
+    appendChatMessage('bot', '老鄰居您好！我是土地公，有健康上的小疑問都可以直接打字問我，或點下面的常見主題也可以喔～');
   }
 
   /* ---- 每日祈福 ---- */
   const BLESSINGS = [
-    { emoji: '🍀', text: '平平安安，順順利利，身體健康是最大的福氣。' },
-    { emoji: '🌞', text: '出入平安，事事順心，土地公陪您走過每一天。' },
-    { emoji: '🌾', text: '身心自在，吃穿無缺，家中大小平安順遂。' },
-    { emoji: '🕊️', text: '心情放寬，凡事看開，煩惱少一點，笑容多一點。' },
-    { emoji: '🌸', text: '貴人相助，逢凶化吉，遇到困難總會有人伸出援手。' },
-    { emoji: '🍵', text: '飲食均衡，作息規律，健健康康過每一天。' },
-    { emoji: '🌟', text: '福氣臨門，好運跟著您，出門在外都平安順利。' },
-    { emoji: '🏮', text: '闔家平安，子孫孝順，家和萬事興。' },
-    { emoji: '🌤️', text: '心寬體胖，笑口常開，健康快樂沒煩惱。' },
-    { emoji: '🙏', text: '土地公保佑您，行得正、走得穩，一路平安。' },
-    { emoji: '🍃', text: '心平氣和，凡事不急，慢慢來，日子會越來越好。' },
-    { emoji: '🌻', text: '知足常樂，感恩惜福，簡單的日子也是幸福。' }
+    { text: '平平安安，順順利利，身體健康是最大的福氣。' },
+    { text: '出入平安，事事順心，土地公陪您走過每一天。' },
+    { text: '身心自在，吃穿無缺，家中大小平安順遂。' },
+    { text: '心情放寬，凡事看開，煩惱少一點，笑容多一點。' },
+    { text: '貴人相助，逢凶化吉，遇到困難總會有人伸出援手。' },
+    { text: '飲食均衡，作息規律，健健康康過每一天。' },
+    { text: '福氣臨門，好運跟著您，出門在外都平安順利。' },
+    { text: '闔家平安，子孫孝順，家和萬事興。' },
+    { text: '心寬體胖，笑口常開，健康快樂沒煩惱。' },
+    { text: '土地公保佑您，行得正、走得穩，一路平安。' },
+    { text: '心平氣和，凡事不急，慢慢來，日子會越來越好。' },
+    { text: '知足常樂，感恩惜福，簡單的日子也是幸福。' }
   ];
 
   function dayOfYear(date){
@@ -2199,7 +2249,6 @@
 
   function showBlessing(index){
     const item = BLESSINGS[index % BLESSINGS.length];
-    blessingEmojiEl.textContent = item.emoji;
     blessingTextEl.textContent = item.text;
   }
 
@@ -2247,7 +2296,7 @@
         row.style.flexDirection = 'column';
         row.style.alignItems = 'flex-start';
         row.style.gap = '4px';
-        row.innerHTML = `<span class="h-date">${rec.date}・👣 ${rec.steps} 步</span><span style="font-size:13.5px; color:var(--ink); font-weight:600;">${rec.message}</span>`;
+        row.innerHTML = `<span class="h-date">${rec.date}・${rec.steps} 步</span><span style="font-size:13.5px; color:var(--ink); font-weight:600;">${rec.message}</span>`;
         prayerHistoryListEl.appendChild(row);
       });
     }
@@ -2260,7 +2309,7 @@
       walkHistory.forEach(rec => {
         const row = document.createElement('div');
         row.className = 'history-row';
-        row.innerHTML = `<span class="h-date">${rec.date}</span><span class="h-score">⏱️ ${rec.duration}・👣 ${rec.steps} 步</span>`;
+        row.innerHTML = `<span class="h-date">${rec.date}</span><span class="h-score">${rec.duration}・${rec.steps} 步</span>`;
         walkHistoryListEl.appendChild(row);
       });
     }
@@ -2361,7 +2410,7 @@
     if(loc.img){
       return `<img src="${loc.img}" alt="${loc.title}">`;
     }
-    return `<span class="loc-img-icon">${loc.type === 'stair' ? '🪜' : '🚪'}</span>`;
+    return `<span class="loc-img-icon">${loc.type === 'stair' ? '樓梯' : '出入口'}</span>`;
   }
 
   function buildLocCard(loc){
@@ -2421,7 +2470,7 @@
     const loc = LOCATIONS.find(l => l.id === id);
     if(!loc) return;
     locModalContent.innerHTML = `
-      <button class="modal-close" id="loc-modal-close" aria-label="關閉">✕</button>
+      <button class="modal-close" id="loc-modal-close" aria-label="關閉"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <div class="modal-img ${loc.type}">
         <span class="loc-num-badge big">${loc.num}</span>
         ${locImgHTML(loc)}
@@ -2558,7 +2607,7 @@
   function startTimer(){
     if(timerRunning) return;
     timerRunning = true;
-    timerStartBtn.textContent = '⏸️ 暫停';
+    timerStartBtn.textContent = '暫停';
     timerIntervalId = setInterval(() => {
       timerSeconds++;
       updateTimerDisplay();
@@ -2569,11 +2618,11 @@
     ensureMotionPermission((granted) => {
       motionSupported = granted;
       if(granted){
-        timerStatusEl.textContent = '📡 自動計步中，請保持螢幕開啟並隨身攜帶手機';
+        timerStatusEl.textContent = '自動計步中，請保持螢幕開啟並隨身攜帶手機';
         manualStepRow.classList.add('hidden');
         window.addEventListener('devicemotion', handleMotion);
       } else {
-        timerStatusEl.textContent = '⚠️ 這台裝置無法自動計步，請用下方按鈕手動調整';
+        timerStatusEl.textContent = '這台裝置無法自動計步，請用下方按鈕手動調整';
         manualStepRow.classList.remove('hidden');
       }
     });
@@ -2581,7 +2630,7 @@
 
   function pauseTimer(){
     timerRunning = false;
-    timerStartBtn.textContent = '▶️ 開始';
+    timerStartBtn.textContent = '開始計時';
     clearInterval(timerIntervalId);
     window.removeEventListener('devicemotion', handleMotion);
     releaseWakeLock();
@@ -2595,7 +2644,7 @@
     timerSeconds = 0;
     updateTimerDisplay();
     if(timerSavedNote) timerSavedNote.textContent = '';
-    timerStatusEl.textContent = '按下開始，手機會自動幫您計步';
+    timerStatusEl.textContent = '按下「開始計時」，手機會自動幫您計步';
   }
 
   if(timerStartBtn){
@@ -2613,7 +2662,7 @@
         return;
       }
       saveWalkRecord(timerSeconds, stepCount);
-      timerSavedNote.textContent = '✅ 已記錄這次的步道足跡！';
+      timerSavedNote.textContent = '已記錄這次的步道足跡！';
       pauseTimer();
       timerSeconds = 0;
       updateTimerDisplay();
@@ -2666,7 +2715,7 @@
     const pct = Math.min(100, Math.round((stepCount / STEP_GOAL) * 100));
 
     goalProgressText.innerHTML = reached
-      ? `🎉 恭喜達成 ${STEP_GOAL} 步！可以向土地公爺爺祈福了`
+      ? `恭喜達成 ${STEP_GOAL} 步！可以向土地公爺爺祈福了`
       : `走 <b>${STEP_GOAL}</b> 步，可以向土地公爺爺加碼祈福！`;
     goalProgressFill.style.width = pct + '%';
     goalProgressNum.textContent = `${stepCount} / ${STEP_GOAL} 步`;
@@ -2694,7 +2743,7 @@
         recognition.onend = () => prayerMicBtn.classList.remove('listening');
         recognition.onerror = () => {
           prayerMicBtn.classList.remove('listening');
-          prayerSavedNote.textContent = '⚠️ 語音辨識失敗，請直接打字';
+          prayerSavedNote.textContent = '語音辨識失敗，請直接打字';
         };
         recognition.onresult = (e) => {
           const text = e.results[0][0].transcript;
@@ -2713,14 +2762,14 @@
       savePrayer(message, stepCount);
       prayerInput.value = '';
       if(BACKEND_READY){
-        prayerSavedNote.textContent = '🙏 已收到，正在回傳給廟方後台…';
+        prayerSavedNote.textContent = '已收到，正在回傳給廟方後台…';
         submitMessage(playerName, message, stepCount).then((ok)=>{
           prayerSavedNote.textContent = ok
-            ? '🙏 留言已收到，也已回傳給廟方後台！可以到「祈福足跡」查看。'
-            : '🙏 留言已收到並記錄在本機，但回傳後台失敗，請確認網路連線。';
+            ? '留言已收到，也已回傳給廟方後台！可以到「祈福足跡」查看。'
+            : '留言已收到並記錄在本機，但回傳後台失敗，請確認網路連線。';
         });
       } else {
-        prayerSavedNote.textContent = '🙏 祈福已收到，土地公謝謝您的心意！可以到「祈福足跡」查看。';
+        prayerSavedNote.textContent = '祈福已收到，土地公謝謝您的心意！可以到「祈福足跡」查看。';
       }
     });
   }
