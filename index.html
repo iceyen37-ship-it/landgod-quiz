@@ -629,6 +629,88 @@
   .modal-rating-row .r-stars{ font-size:14px; color:var(--gold); letter-spacing:1.5px; }
   .modal-rating-row .r-num{ font-size:11.5px; color:var(--ink-soft); margin-left:6px; letter-spacing:0; }
 
+
+  /* ---- 出發確認畫面（選好路線、按下開始計時後跳出） ---- */
+  .depart-overlay{
+    position:fixed; inset:0; z-index:210;
+    background:rgba(40,20,10,0.72);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    animation:departFade .2s ease;
+  }
+  .depart-overlay.hidden{ display:none !important; }
+  @keyframes departFade{ from{opacity:0} to{opacity:1} }
+  .depart-box{
+    position:relative;
+    width:100%; max-width:360px;
+    background:linear-gradient(180deg, #fffdf6 0%, #fff4dc 100%);
+    border:2px solid var(--gold);
+    border-radius:22px;
+    padding:34px 22px 24px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+  .depart-close{
+    position:absolute; top:10px; right:12px;
+    width:34px; height:34px; border:none; border-radius:50%;
+    background:transparent; color:var(--ink-soft);
+    font-size:22px; line-height:1; cursor:pointer;
+  }
+  .depart-km{
+    display:inline-block;
+    font-size:13px; font-weight:800; color:#fff8ea;
+    background:var(--temple-red);
+    border-radius:999px; padding:4px 14px; margin-bottom:14px;
+  }
+  .depart-km[data-km="1"]{ background:#F2B27C; }
+  .depart-km[data-km="2"]{ background:#4FB3B5; }
+  .depart-lead{
+    font-size:17px; font-weight:800; color:var(--ink);
+    line-height:1.6; margin-bottom:4px;
+  }
+  .depart-route{
+    font-size:28px; font-weight:900; color:var(--temple-red);
+    letter-spacing:2px; margin-bottom:24px;
+  }
+  .depart-go-btn{
+    width:100%;
+    font-family:'Noto Sans TC', sans-serif;
+    font-size:17px; font-weight:800;
+    border-radius:999px; padding:14px 8px;
+    border:2px solid var(--gold);
+    background:var(--temple-red); color:#fff8ea;
+    cursor:pointer;
+  }
+  .depart-go-btn:active{ transform:scale(0.97); }
+  .prayer-pop{ text-align:left; padding:28px 18px 10px; }
+  .prayer-pop .prayer-box{ margin-top:0; padding-top:0; border-top:none; }
+  .prayer-pop-title{
+    text-align:center; font-size:20px; font-weight:900;
+    color:var(--temple-red); letter-spacing:2px; margin-bottom:16px;
+  }
+  .finish-box{ padding:34px 22px 24px; }
+  .finish-emoji{ font-size:44px; line-height:1; margin-bottom:10px; }
+  .finish-title{
+    font-size:26px; font-weight:900; color:var(--temple-red);
+    letter-spacing:2px; margin-bottom:10px;
+  }
+  .finish-text{
+    font-size:15px; font-weight:700; color:var(--ink);
+    line-height:1.7; margin-bottom:18px;
+  }
+  .finish-stats{
+    display:flex; gap:8px; margin-bottom:14px;
+  }
+  .finish-stat{
+    flex:1; background:#fff; border:1px solid #ecdcc4;
+    border-radius:14px; padding:10px 4px;
+  }
+  .finish-stat .v{ font-size:16px; font-weight:900; color:var(--temple-red); }
+  .finish-stat .k{ font-size:11.5px; font-weight:700; color:var(--ink-soft); margin-top:2px; }
+  .finish-note{ font-size:12px; color:var(--ink-soft); min-height:16px; margin-bottom:16px; }
+  .route-row.need-pick{ animation:needPick .5s ease 2; }
+  @keyframes needPick{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
   /* ---- 路線選擇（追孫路線 / 參拜路線 / 六塊肌路線） ---- */
   .route-row{
     display:flex;
@@ -1382,14 +1464,6 @@
           <button class="goal-pray-btn" id="goal-pray-btn" disabled>加碼祈福</button>
         </div>
 
-        <div class="prayer-box hidden" id="prayer-box">
-          <textarea class="prayer-input" id="prayer-input" placeholder="打字，或按麥克風說出您想對土地公說的話…"></textarea>
-          <div class="prayer-input-row">
-            <button class="prayer-mic-btn" id="prayer-mic-btn" aria-label="語音輸入"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M18.5 11a.9.9 0 0 0-1.8 0 4.7 4.7 0 0 1-9.4 0 .9.9 0 0 0-1.8 0 6.5 6.5 0 0 0 5.6 6.4V20H8.6a.9.9 0 0 0 0 1.8h6.8a.9.9 0 0 0 0-1.8h-2.5v-2.6a6.5 6.5 0 0 0 5.6-6.4z"/></svg></button>
-            <button class="prayer-submit-btn" id="prayer-submit-btn">獻上祈福</button>
-          </div>
-          <div class="prayer-saved-note" id="prayer-saved-note"></div>
-        </div>
       </div>
 
       <div class="route-row" id="route-row">
@@ -1620,6 +1694,52 @@
       <span class="tab-label">祈福足跡</span>
     </button>
   </nav>
+
+
+
+  <!-- ---- 留言／祈福彈出框 ---- -->
+  <div class="depart-overlay hidden" id="prayer-overlay" role="dialog" aria-modal="true" aria-labelledby="prayer-pop-title">
+    <div class="depart-box prayer-pop">
+      <button class="depart-close" id="prayer-close-btn" aria-label="關閉">×</button>
+      <div class="prayer-pop-title" id="prayer-pop-title">我想留言</div>
+      <div class="prayer-box" id="prayer-box">
+          <textarea class="prayer-input" id="prayer-input" placeholder="打字，或按麥克風說出您想對土地公說的話…"></textarea>
+          <div class="prayer-input-row">
+            <button class="prayer-mic-btn" id="prayer-mic-btn" aria-label="語音輸入"><svg viewBox="0 0 24 24" aria-hidden="true" class="ico"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5z"/><path d="M18.5 11a.9.9 0 0 0-1.8 0 4.7 4.7 0 0 1-9.4 0 .9.9 0 0 0-1.8 0 6.5 6.5 0 0 0 5.6 6.4V20H8.6a.9.9 0 0 0 0 1.8h6.8a.9.9 0 0 0 0-1.8h-2.5v-2.6a6.5 6.5 0 0 0 5.6-6.4z"/></svg></button>
+            <button class="prayer-submit-btn" id="prayer-submit-btn">獻上祈福</button>
+          </div>
+          <div class="prayer-saved-note" id="prayer-saved-note"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ---- 旅程結束畫面 ---- -->
+  <div class="depart-overlay hidden" id="finish-overlay" role="dialog" aria-modal="true" aria-labelledby="finish-title">
+    <div class="depart-box finish-box">
+      <div class="finish-emoji" aria-hidden="true">🙏</div>
+      <div class="finish-title" id="finish-title">下次再來參加</div>
+      <div class="finish-text">感謝您今天陪土地公爺爺走這一趟，<br>您的心願土地公爺爺收到了！</div>
+      <div class="finish-stats">
+        <div class="finish-stat"><div class="v" id="finish-route">—</div><div class="k">路線</div></div>
+        <div class="finish-stat"><div class="v" id="finish-time">00:00</div><div class="k">時間</div></div>
+        <div class="finish-stat"><div class="v" id="finish-steps">0</div><div class="k">步數</div></div>
+      </div>
+      <div class="finish-note" id="finish-note"></div>
+      <button class="depart-go-btn" id="finish-ok-btn">好，下次見！</button>
+    </div>
+  </div>
+
+  <!-- ---- 出發確認畫面 ---- -->
+  <div class="depart-overlay hidden" id="depart-overlay" role="dialog" aria-modal="true" aria-labelledby="depart-route-name">
+    <div class="depart-box">
+      <button class="depart-close" id="depart-close-btn" aria-label="關閉">×</button>
+      <div class="depart-km" id="depart-km">1K</div>
+      <div class="depart-lead">我現在要和土地公爺爺<br>踏上</div>
+      <div class="depart-route" id="depart-route-name">追孫路線</div>
+      <button class="depart-go-btn" id="depart-go-btn">開始計時</button>
+    </div>
+  </div>
 
   <!-- ---- 放大彈窗（半透明黑底、滿版） ---- -->
   <div class="loc-modal-overlay hidden" id="loc-modal-overlay">
@@ -2648,9 +2768,34 @@
   }
 
   if(timerStartBtn){
+    const departOverlay = document.getElementById('depart-overlay');
+    const departRouteName = document.getElementById('depart-route-name');
+    const departKm = document.getElementById('depart-km');
+    const departGoBtn = document.getElementById('depart-go-btn');
+    const departCloseBtn = document.getElementById('depart-close-btn');
+
+    function closeDepart(){ departOverlay.classList.add('hidden'); }
+
     timerStartBtn.addEventListener('click', () => {
-      if(timerRunning) pauseTimer(); else startTimer();
+      if(timerRunning){ pauseTimer(); return; }
+      // 暫停後繼續：直接接著計時，不再跳出畫面
+      if(timerSeconds > 0){ startTimer(); return; }
+      const picked = document.querySelector('#route-row .route-card.selected');
+      if(!picked){
+        timerStatusEl.textContent = '請先選擇一條路線，再按「開始計時」';
+        const row = document.getElementById('route-row');
+        row.classList.remove('need-pick'); void row.offsetWidth; row.classList.add('need-pick');
+        row.scrollIntoView({ behavior:'smooth', block:'center' });
+        return;
+      }
+      departRouteName.textContent = picked.querySelector('.route-name').textContent.trim();
+      departKm.textContent = picked.querySelector('.route-distance').textContent.trim();
+      departKm.dataset.km = picked.dataset.km;
+      departOverlay.classList.remove('hidden');
     });
+    departGoBtn.addEventListener('click', () => { closeDepart(); startTimer(); });
+    departCloseBtn.addEventListener('click', closeDepart);
+    departOverlay.addEventListener('click', (e) => { if(e.target === departOverlay) closeDepart(); });
     timerResetBtn.addEventListener('click', resetTimer);
 
     stepPlusBtn.addEventListener('click', () => addSteps(1));
@@ -2700,10 +2845,35 @@
   const goalAskBtn = document.getElementById('goal-ask-btn');
   const prayerBox = document.getElementById('prayer-box');
   if(goalAskBtn){
-    goalAskBtn.addEventListener('click', () => {
-      prayerBox.classList.toggle('hidden');
-    });
+    goalAskBtn.addEventListener('click', () => openPrayerPop('我想留言'));
   }
+  const prayerOverlay = document.getElementById('prayer-overlay');
+  const prayerPopTitle = document.getElementById('prayer-pop-title');
+  function openPrayerPop(title){
+    prayerPopTitle.textContent = title;
+    document.getElementById('prayer-saved-note').textContent = '';
+    prayerOverlay.classList.remove('hidden');
+    setTimeout(() => { try{ document.getElementById('prayer-input').focus(); }catch(e){} }, 50);
+  }
+  function closePrayerPop(){ prayerOverlay.classList.add('hidden'); }
+  const finishOverlay = document.getElementById('finish-overlay');
+  function showFinishScreen(){
+    // 旅程結束：若還在計時就先停下來
+    if(timerRunning) pauseTimer();
+    const picked = document.querySelector('#route-row .route-card.selected');
+    document.getElementById('finish-route').textContent =
+      picked ? picked.querySelector('.route-name').textContent.trim() : '—';
+    document.getElementById('finish-time').textContent = formatTimer(timerSeconds);
+    document.getElementById('finish-steps').textContent = stepCount;
+    closePrayerPop();
+    finishOverlay.classList.remove('hidden');
+  }
+  document.getElementById('finish-ok-btn').addEventListener('click', () => {
+    finishOverlay.classList.add('hidden');
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+  document.getElementById('prayer-close-btn').addEventListener('click', closePrayerPop);
+  prayerOverlay.addEventListener('click', (e) => { if(e.target === prayerOverlay) closePrayerPop(); });
   const prayerInput = document.getElementById('prayer-input');
   const prayerMicBtn = document.getElementById('prayer-mic-btn');
   const prayerSubmitBtn = document.getElementById('prayer-submit-btn');
@@ -2727,7 +2897,7 @@
   if(goalPrayBtn){
     goalPrayBtn.addEventListener('click', () => {
       if(goalPrayBtn.disabled) return;
-      prayerBox.classList.toggle('hidden');
+      openPrayerPop('加碼祈福');
     });
 
     if(!SpeechRecognitionCtor){
@@ -2761,15 +2931,18 @@
       }
       savePrayer(message, stepCount);
       prayerInput.value = '';
+      prayerSavedNote.textContent = '';
+      showFinishScreen();
+      const finishNote = document.getElementById('finish-note');
       if(BACKEND_READY){
-        prayerSavedNote.textContent = '已收到，正在回傳給廟方後台…';
+        finishNote.textContent = '正在回傳給廟方後台…';
         submitMessage(playerName, message, stepCount).then((ok)=>{
-          prayerSavedNote.textContent = ok
-            ? '留言已收到，也已回傳給廟方後台！可以到「祈福足跡」查看。'
-            : '留言已收到並記錄在本機，但回傳後台失敗，請確認網路連線。';
+          finishNote.textContent = ok
+            ? '留言已回傳給廟方後台，可以到「祈福足跡」查看。'
+            : '留言已記錄在本機，但回傳後台失敗，請確認網路連線。';
         });
       } else {
-        prayerSavedNote.textContent = '祈福已收到，土地公謝謝您的心意！可以到「祈福足跡」查看。';
+        finishNote.textContent = '可以到「祈福足跡」查看這次的紀錄。';
       }
     });
   }
