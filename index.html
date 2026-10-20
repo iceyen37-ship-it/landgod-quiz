@@ -840,6 +840,27 @@
     margin-top:14px;
     width:100%;
   }
+  .today-walks{
+    margin-top:14px; padding-top:14px;
+    border-top:2px dashed #ecd9b8;
+    text-align:left;
+  }
+  .today-walks.hidden{ display:none; }
+  .today-walks-title{
+    font-size:14px; font-weight:800; color:var(--ink);
+    margin-bottom:10px; text-align:center;
+  }
+  .today-walks-list{ display:flex; flex-direction:column; gap:8px; }
+  .today-walk-row{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:#fff; border:2px solid #e6d3ac; border-radius:14px;
+    padding:11px 14px;
+  }
+  .today-walk-row.latest{ border-color:var(--temple-red); background:linear-gradient(180deg,#fff,#fbe9df); }
+  .today-walk-row .tw-left{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .today-walk-row .tw-route{ font-size:14.5px; font-weight:800; color:var(--ink); }
+  .today-walk-row .tw-time{ font-size:12px; color:var(--ink-soft); font-weight:600; }
+  .today-walk-row .tw-score{ font-size:16px; font-weight:800; color:var(--temple-red); white-space:nowrap; }
   .timer-saved-note{
     text-align:center;
     font-size:12.5px;
@@ -1501,6 +1522,11 @@
 
         <button class="btn-secondary timer-save-btn" id="timer-save-btn">記錄本次步道時間</button>
         <div class="timer-saved-note" id="timer-saved-note"></div>
+
+        <div class="today-walks hidden" id="today-walks">
+          <div class="today-walks-title">今日步道紀錄</div>
+          <div class="today-walks-list" id="today-walks-list"></div>
+        </div>
       </div>
 
       <div class="loc-section-title" style="margin-top:2px;">各入口注意點（可以點擊）</div>
@@ -1805,12 +1831,13 @@
     try{ return JSON.parse(localStorage.getItem(STORAGE_WALK_KEY) || '[]'); }
     catch(e){ return []; }
   }
-  function saveWalkRecord(durationSeconds, steps){
+  function saveWalkRecord(durationSeconds, steps, route){
     try{
       const list = loadWalkHistory();
       list.unshift({
         duration: formatTimer(durationSeconds),
         steps,
+        route: route || '',
         date: new Date().toLocaleString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
       });
       localStorage.setItem(STORAGE_WALK_KEY, JSON.stringify(list.slice(0, 30)));
@@ -1837,6 +1864,16 @@
       mode: 'no-cors',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({ type: 'message', name, message, steps })
+    }).then(()=> true).catch(()=> false);
+  }
+
+  function submitWalk(name, route, duration, steps){
+    if(!BACKEND_READY) return Promise.resolve(false);
+    return fetch(BACKEND_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({ type: 'walk', name, route, duration, steps })
     }).then(()=> true).catch(()=> false);
   }
 
@@ -2429,7 +2466,7 @@
       walkHistory.forEach(rec => {
         const row = document.createElement('div');
         row.className = 'history-row';
-        row.innerHTML = `<span class="h-date">${rec.date}</span><span class="h-score">${rec.duration}・${rec.steps} 步</span>`;
+        row.innerHTML = `<span class="h-date">${rec.route ? rec.route + '<br>' : ''}${rec.date}</span><span class="h-score">${rec.duration}・${rec.steps} 步</span>`;
         walkHistoryListEl.appendChild(row);
       });
     }
@@ -2471,6 +2508,7 @@
   walkHistoryClearBtn.addEventListener('click', ()=>{
     clearWalkHistory();
     renderProfile();
+    renderTodayWalks(false);
   });
 
   prayerHistoryClearBtn.addEventListener('click', ()=>{
@@ -2659,6 +2697,30 @@
   const STEP_MAGNITUDE_THRESHOLD = 12.5;
   const STEP_MIN_INTERVAL_MS = 300;
 
+  function renderTodayWalks(highlightLatest){
+    const wrap = document.getElementById('today-walks');
+    const listEl = document.getElementById('today-walks-list');
+    if(!wrap || !listEl) return;
+    const today = new Date().toLocaleDateString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const todays = loadWalkHistory().filter(r => (r.date || '').indexOf(today) === 0);
+    listEl.innerHTML = '';
+    if(todays.length === 0){ wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    todays.forEach((rec, i) => {
+      const isLatest = highlightLatest && i === 0;
+      const row = document.createElement('div');
+      row.className = 'today-walk-row' + (isLatest ? ' latest' : '');
+      const left = document.createElement('div'); left.className = 'tw-left';
+      const r = document.createElement('span'); r.className = 'tw-route'; r.textContent = rec.route || '步道健走';
+      const t = document.createElement('span'); t.className = 'tw-time';
+      t.textContent = (isLatest ? '本次・' : '') + (rec.date || '').slice(today.length).trim();
+      left.append(r, t);
+      const sc = document.createElement('span'); sc.className = 'tw-score'; sc.textContent = `${rec.duration}・${rec.steps} 步`;
+      row.append(left, sc);
+      listEl.appendChild(row);
+    });
+  }
+
   function updateTimerDisplay(){
     if(timerDisplay) timerDisplay.textContent = formatTimer(timerSeconds);
   }
@@ -2806,12 +2868,25 @@
         timerSavedNote.textContent = '請先開始計時再儲存這次的步道紀錄喔';
         return;
       }
-      saveWalkRecord(timerSeconds, stepCount);
+      const pickedRoute = document.querySelector('#route-row .route-card.selected .route-name');
+      const routeName = pickedRoute ? pickedRoute.textContent.trim() : '';
+      saveWalkRecord(timerSeconds, stepCount, routeName);
       timerSavedNote.textContent = '已記錄這次的步道足跡！';
+      if(BACKEND_READY){
+        const who = playerName || loadSavedName() || '';
+        submitWalk(who, routeName, formatTimer(timerSeconds), stepCount).then((ok)=>{
+          timerSavedNote.textContent = ok
+            ? '已記錄這次的步道足跡，也已回傳給廟方後台！'
+            : '已記錄在本機，但回傳後台失敗，請確認網路連線。';
+        });
+      }
       pauseTimer();
       timerSeconds = 0;
       updateTimerDisplay();
+      renderTodayWalks(true);
+      document.getElementById('today-walks').scrollIntoView({ behavior:'smooth', block:'nearest' });
     });
+    renderTodayWalks(false);
 
     updateStepsDisplay();
   }
