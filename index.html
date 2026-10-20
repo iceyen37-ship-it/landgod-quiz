@@ -853,6 +853,11 @@
     cursor:pointer;
   }
   .sst-open-btn:active{ transform:scale(0.97); }
+  .sst-open-btn.selected{
+    border:2px solid var(--temple-red);
+    background:linear-gradient(180deg, #fff, #fbe9df);
+  }
+  .sst-status{ font-size:12px; font-weight:700; color:var(--ink-soft); min-height:16px; margin-bottom:10px; }
   .sst-box .sst-save{ margin-top:10px; background:#fff; color:var(--temple-red); border-color:var(--temple-red); }
   .sst-clock{
     font-family:'Noto Serif TC', serif; font-size:44px; font-weight:900;
@@ -1803,6 +1808,7 @@
         <span class="sst-count" id="sst-count">0</span>
         <span class="sst-tap-label">次</span>
       </button>
+      <div class="sst-status" id="sst-status"></div>
       <button class="depart-go-btn" id="sst-start-btn">開始測試</button>
       <button class="depart-go-btn sst-save" id="sst-save-btn" hidden>記錄</button>
       <div class="timer-saved-note" id="sst-saved-note"></div>
@@ -3100,7 +3106,31 @@
     const startBtn = document.getElementById('sst-start-btn');
     const saveBtn = document.getElementById('sst-save-btn');
     const noteEl = document.getElementById('sst-saved-note');
+    const statusEl = document.getElementById('sst-status');
     let left = SST_SECONDS, count = 0, timerId = null, running = false;
+
+    /* 跟路線計步一樣用手機的動作感應：站起來時會有一次明顯的加速度，
+       每偵測到一次就算一下；站起＋坐下一輪約需 1.5 秒以上，
+       所以 1.4 秒內不重複計算，避免坐下那一下又被算一次。 */
+    const SST_THRESHOLD = 12.5;
+    const SST_MIN_INTERVAL_MS = 1400;
+    let lastRepTime = 0, listening = false;
+    function sstMotion(event){
+      if(!running) return;
+      const acc = event.accelerationIncludingGravity || event.acceleration;
+      if(!acc || acc.x === null) return;
+      const x = acc.x || 0, y = acc.y || 0, z = acc.z || 0;
+      const mag = Math.sqrt(x*x + y*y + z*z);
+      const now = Date.now();
+      if(mag > SST_THRESHOLD && (now - lastRepTime) > SST_MIN_INTERVAL_MS){
+        lastRepTime = now;
+        count++; paint();
+      }
+    }
+    function stopListening(){
+      if(listening){ window.removeEventListener('devicemotion', sstMotion); listening = false; }
+      releaseWakeLock();
+    }
 
     function saveSst(c){
       try{
@@ -3116,6 +3146,8 @@
     }
     function reset(){
       clearInterval(timerId); timerId = null; running = false;
+      stopListening();
+      statusEl.textContent = '';
       left = SST_SECONDS; count = 0;
       tapBtn.disabled = true;
       startBtn.textContent = '開始測試'; startBtn.disabled = false;
@@ -3125,13 +3157,21 @@
     }
     function finish(){
       clearInterval(timerId); timerId = null; running = false;
+      stopListening();
+      statusEl.textContent = '時間到！';
       tapBtn.disabled = true;
       startBtn.textContent = '再測一次'; startBtn.disabled = false;
       saveBtn.hidden = false;
       try{ if(navigator.vibrate) navigator.vibrate(400); }catch(e){}
       paint();
     }
-    openBtn.addEventListener('click', () => { reset(); overlay.classList.remove('hidden'); });
+    openBtn.addEventListener('click', () => {
+      document.querySelectorAll('#route-row .route-card').forEach(c => c.classList.remove('selected'));
+      openBtn.classList.add('selected');
+      reset(); overlay.classList.remove('hidden');
+    });
+    document.querySelectorAll('#route-row .route-card').forEach(c =>
+      c.addEventListener('click', () => openBtn.classList.remove('selected')));
     function close(){ reset(); overlay.classList.add('hidden'); }
     document.getElementById('sst-close-btn').addEventListener('click', close);
     overlay.addEventListener('click', (e) => { if(e.target === overlay && !running) close(); });
@@ -3140,6 +3180,18 @@
       running = true;
       startBtn.textContent = '測試中…'; startBtn.disabled = true;
       tapBtn.disabled = false;
+      lastRepTime = 0;
+      requestWakeLock();
+      ensureMotionPermission((granted) => {
+        if(!running) return;
+        if(granted){
+          window.addEventListener('devicemotion', sstMotion);
+          listening = true;
+          statusEl.textContent = '自動感應中，請把手機拿在手上或放口袋';
+        } else {
+          statusEl.textContent = '這台裝置無法自動感應，請每站起來一次就點一下數字';
+        }
+      });
       timerId = setInterval(() => { left--; paint(); if(left <= 0) finish(); }, 1000);
       paint();
     });
