@@ -840,6 +840,40 @@
     margin-top:14px;
     width:100%;
   }
+  .sst-open-btn{
+    width:100%;
+    font-family:'Noto Sans TC', sans-serif;
+    font-size:15px; font-weight:800;
+    color:var(--temple-red);
+    background:#fff;
+    border:1px solid #ecdcc4;
+    border-radius:16px;
+    padding:14px 8px;
+    box-shadow:0 4px 10px rgba(120,80,30,0.10);
+    cursor:pointer;
+  }
+  .sst-open-btn:active{ transform:scale(0.97); }
+  .sst-box .sst-save{ margin-top:10px; background:#fff; color:var(--temple-red); border-color:var(--temple-red); }
+  .sst-clock{
+    font-family:'Noto Serif TC', serif; font-size:44px; font-weight:900;
+    color:var(--teal); line-height:1;
+  }
+  .sst-clock.ending{ color:var(--temple-red); }
+  .sst-clock-unit{ font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:12px; }
+  .sst-tap-btn{
+    width:100%; display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-family:'Noto Sans TC', sans-serif;
+    background:#fff; border:2px dashed #e6d3ac; border-radius:18px;
+    padding:16px 10px; margin-bottom:12px; cursor:pointer; color:var(--ink-soft);
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  .sst-tap-btn:not(:disabled){
+    border:2px solid var(--gold);
+    background:linear-gradient(180deg,#fffdf6,#fff1d2); color:var(--ink);
+  }
+  .sst-tap-btn:not(:disabled):active{ transform:scale(0.97); }
+  .sst-count{ font-family:'Noto Serif TC', serif; font-size:48px; font-weight:900; color:var(--temple-red); line-height:1; }
+  .sst-tap-label{ font-size:13px; font-weight:800; }
   .today-walks{
     margin-top:14px; padding-top:14px;
     border-top:2px dashed #ecd9b8;
@@ -1502,6 +1536,8 @@
         </div>
       </div>
 
+      <button class="sst-open-btn" id="sst-open-btn">坐站測試</button>
+
       <div class="timer-card">
         <div class="steps-today-label">今日步數</div>
         <div class="steps-today-display" id="steps-today-display">0</div>
@@ -1756,6 +1792,23 @@
     </div>
   </div>
 
+  <!-- ---- 坐站測試彈出框 ---- -->
+  <div class="depart-overlay hidden" id="sst-overlay" role="dialog" aria-modal="true" aria-labelledby="sst-title">
+    <div class="depart-box sst-box">
+      <button class="depart-close" id="sst-close-btn" aria-label="關閉">×</button>
+      <div class="prayer-pop-title" id="sst-title">坐站測試</div>
+      <div class="sst-clock" id="sst-clock">30</div>
+      <div class="sst-clock-unit">秒</div>
+      <button class="sst-tap-btn" id="sst-tap-btn" disabled>
+        <span class="sst-count" id="sst-count">0</span>
+        <span class="sst-tap-label">次</span>
+      </button>
+      <button class="depart-go-btn" id="sst-start-btn">開始測試</button>
+      <button class="depart-go-btn sst-save" id="sst-save-btn" hidden>記錄</button>
+      <div class="timer-saved-note" id="sst-saved-note"></div>
+    </div>
+  </div>
+
   <!-- ---- 出發確認畫面 ---- -->
   <div class="depart-overlay hidden" id="depart-overlay" role="dialog" aria-modal="true" aria-labelledby="depart-route-name">
     <div class="depart-box">
@@ -1874,6 +1927,16 @@
       mode: 'no-cors',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({ type: 'walk', name, route, duration, steps })
+    }).then(()=> true).catch(()=> false);
+  }
+
+  function submitSitStand(name, count){
+    if(!BACKEND_READY) return Promise.resolve(false);
+    return fetch(BACKEND_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({ type: 'sitstand', name, count, seconds: 30 })
     }).then(()=> true).catch(()=> false);
   }
 
@@ -3023,6 +3086,75 @@
   }
 
   renderGoalCard();
+
+  /* ---- 30 秒坐站測試（彈出框） ---- */
+  (function setupSitStand(){
+    const openBtn = document.getElementById('sst-open-btn');
+    if(!openBtn) return;
+    const SST_SECONDS = 30;
+    const STORAGE_SST_KEY = 'landgodSitStandHistory';
+    const overlay = document.getElementById('sst-overlay');
+    const clockEl = document.getElementById('sst-clock');
+    const tapBtn = document.getElementById('sst-tap-btn');
+    const countEl = document.getElementById('sst-count');
+    const startBtn = document.getElementById('sst-start-btn');
+    const saveBtn = document.getElementById('sst-save-btn');
+    const noteEl = document.getElementById('sst-saved-note');
+    let left = SST_SECONDS, count = 0, timerId = null, running = false;
+
+    function saveSst(c){
+      try{
+        const list = JSON.parse(localStorage.getItem(STORAGE_SST_KEY) || '[]');
+        list.unshift({ count:c, date:new Date().toLocaleString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) });
+        localStorage.setItem(STORAGE_SST_KEY, JSON.stringify(list.slice(0, 30)));
+      }catch(e){}
+    }
+    function paint(){
+      clockEl.textContent = left;
+      clockEl.classList.toggle('ending', running && left <= 5);
+      countEl.textContent = count;
+    }
+    function reset(){
+      clearInterval(timerId); timerId = null; running = false;
+      left = SST_SECONDS; count = 0;
+      tapBtn.disabled = true;
+      startBtn.textContent = '開始測試'; startBtn.disabled = false;
+      saveBtn.hidden = true; saveBtn.disabled = false;
+      noteEl.textContent = '';
+      paint();
+    }
+    function finish(){
+      clearInterval(timerId); timerId = null; running = false;
+      tapBtn.disabled = true;
+      startBtn.textContent = '再測一次'; startBtn.disabled = false;
+      saveBtn.hidden = false;
+      try{ if(navigator.vibrate) navigator.vibrate(400); }catch(e){}
+      paint();
+    }
+    openBtn.addEventListener('click', () => { reset(); overlay.classList.remove('hidden'); });
+    function close(){ reset(); overlay.classList.add('hidden'); }
+    document.getElementById('sst-close-btn').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if(e.target === overlay && !running) close(); });
+    startBtn.addEventListener('click', () => {
+      reset();
+      running = true;
+      startBtn.textContent = '測試中…'; startBtn.disabled = true;
+      tapBtn.disabled = false;
+      timerId = setInterval(() => { left--; paint(); if(left <= 0) finish(); }, 1000);
+      paint();
+    });
+    tapBtn.addEventListener('click', () => { if(running){ count++; paint(); } });
+    saveBtn.addEventListener('click', () => {
+      saveBtn.disabled = true;
+      saveSst(count);
+      noteEl.textContent = '已記錄！';
+      if(BACKEND_READY){
+        submitSitStand(playerName || loadSavedName() || '', count).then((ok)=>{
+          noteEl.textContent = ok ? '已記錄，也已回傳給廟方後台！' : '已記錄在本機，但回傳後台失敗。';
+        });
+      }
+    });
+  })();
 
   /* ---- 路線選擇卡片 ---- */
   const routeRowEl = document.getElementById('route-row');
